@@ -592,7 +592,6 @@ class Renderer extends EventEmitter {
             delta = delta < 0 ? Math.floor(delta) : Math.ceil(delta);
             delta /= 2;
             this.scrollContainer.scrollLeft += delta;
-            console.log({ delta });
         }
     }
     zoom(minPxPerSec) {
