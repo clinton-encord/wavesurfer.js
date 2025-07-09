@@ -8,6 +8,7 @@ import BasePlugin, { type BasePluginEvents } from '../base-plugin.js'
 import { makeDraggable } from '../draggable.js'
 import EventEmitter from '../event-emitter.js'
 import createElement from '../dom.js'
+import renderer from "../renderer";
 
 export type RegionsPluginOptions = undefined
 
@@ -592,8 +593,11 @@ class RegionsPlugin extends BasePlugin<RegionsPluginEvents, RegionsPluginOptions
       if (!this.wavesurfer) return
       renderIfVisible()
 
-      const unsubscribe = this.wavesurfer.on('scroll', renderIfVisible)
-      this.subscriptions.push(region.once('remove', unsubscribe), unsubscribe)
+      const unsubscribeScroll = this.wavesurfer.on('scroll', renderIfVisible)
+      const unsubscribeZoom = this.wavesurfer.on('zoom', renderIfVisible)
+
+      this.subscriptions.push(region.once('remove', unsubscribeScroll), unsubscribeScroll)
+      this.subscriptions.push(region.once('remove', unsubscribeZoom), unsubscribeZoom)
     }, 0)
   }
 
