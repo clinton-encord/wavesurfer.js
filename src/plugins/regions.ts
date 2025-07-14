@@ -9,6 +9,8 @@ import { makeDraggable } from '../draggable.js'
 import EventEmitter from '../event-emitter.js'
 import createElement from '../dom.js'
 import renderer from "../renderer";
+import wavesurfer from "../wavesurfer";
+import Wavesurfer from "../wavesurfer";
 
 export type RegionsPluginOptions = undefined
 
@@ -106,10 +108,11 @@ class SingleRegion extends EventEmitter<RegionEvents> implements Region {
   constructor(
     params: RegionParams,
     private totalDuration: number,
+    private wavesurfer: Wavesurfer,
     private numberOfChannels = 0,
   ) {
     super()
-
+    this.wavesurfer = wavesurfer
     this.subscriptions = []
     this.id = params.id || `region-${Math.random().toString(32).slice(2)}`
     this.start = this.clampPosition(params.start)
@@ -187,6 +190,7 @@ class SingleRegion extends EventEmitter<RegionEvents> implements Region {
         (dx) => this.onResize(dx, 'start'),
         () => null,
         () => this.onEndResizing(),
+        this.wavesurfer,
         resizeThreshold,
       ),
       makeDraggable(
@@ -194,6 +198,7 @@ class SingleRegion extends EventEmitter<RegionEvents> implements Region {
         (dx) => this.onResize(dx, 'end'),
         () => null,
         () => this.onEndResizing(),
+        this.wavesurfer,
         resizeThreshold,
       ),
     )
@@ -280,6 +285,7 @@ class SingleRegion extends EventEmitter<RegionEvents> implements Region {
           this.toggleCursor(false)
           if (this.drag) this.emit('update-end')
         },
+        this.wavesurfer,
       ),
     )
 
@@ -657,7 +663,7 @@ class RegionsPlugin extends BasePlugin<RegionsPluginEvents, RegionsPluginOptions
 
     const duration = this.wavesurfer.getDuration()
     const numberOfChannels = this.wavesurfer?.getDecodedData()?.numberOfChannels
-    const region = new SingleRegion(options, duration, numberOfChannels)
+    const region = new SingleRegion(options, duration, this.wavesurfer, numberOfChannels)
     this.emit('region-initialized', region)
 
     if (!duration) {
@@ -718,6 +724,7 @@ class RegionsPlugin extends BasePlugin<RegionsPluginEvents, RegionsPluginOptions
             end,
           },
           duration,
+          this.wavesurfer,
           numberOfChannels,
         )
 
@@ -736,7 +743,7 @@ class RegionsPlugin extends BasePlugin<RegionsPluginEvents, RegionsPluginOptions
           region = null
         }
       },
-
+      this.wavesurfer,
       threshold,
     )
   }
